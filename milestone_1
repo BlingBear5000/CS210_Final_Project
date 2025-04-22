@@ -1,1 +1,24 @@
+#include <iostream>
 
+using namespace std;
+
+double read(string name, string code) {
+    return 0.0;
+}
+
+
+int main() {
+    string finished;;
+    while (finished != "n") {
+        cout << "Enter city name: ";
+        string name;
+        getline(cin, name);
+        cout << "Enter country code: ";
+        string code;
+        getline(cin, code);
+        cout << "poulation: " << read(name, code);
+        cout << endl << "Do you want to continue? (y/n) ";
+        getline(cin, finished);
+    }
+    return 0;
+}
