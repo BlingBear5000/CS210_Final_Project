@@ -1,14 +1,15 @@
 #include <iostream>
+#include <queue>
 
 using namespace std;
 
-double read(string name, string code) {
+double read(string name, string code, queue<tuple<string, string, double>> cache) {
     return 0.0;
 }
 
-
 int main() {
-    string finished;;
+    queue<tuple<string, string, double>> cache;
+    string finished;
     while (finished != "n") {
         cout << "Enter city name: ";
         string name;
@@ -16,7 +17,10 @@ int main() {
         cout << "Enter country code: ";
         string code;
         getline(cin, code);
-        cout << "poulation: " << read(name, code);
+        double population = read(name, code, cache);
+        cout << "population: " << population;
+        cache.push(tuple(name, code, population));
+        if (cache.size() > 10) {cache.pop();}
         cout << endl << "Do you want to continue? (y/n) ";
         getline(cin, finished);
     }
