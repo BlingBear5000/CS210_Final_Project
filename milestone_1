@@ -45,8 +45,12 @@ int main() {
         string code;
         getline(cin, code);
         string population = read(code, name, cache);
-        cout << "population: " << population;
-        cache.push_front(tuple(code, name, population));
+        if (population != "") {
+            cache.push_front(tuple(code, name, population));
+            cout << "population: " << population;
+        } else {
+            cout << "City not found";
+        }
         if (cache.size() > 10) {cache.pop_back();}
         cout << endl << "Do you want to continue? (y/n) ";
         getline(cin, finished);
