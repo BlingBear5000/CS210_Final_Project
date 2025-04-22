@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -45,8 +46,11 @@ int main() {
         string code;
         getline(cin, code);
         string population = read(code, name, cache);
-        if (population != "") {
-            cache.push_front(tuple(code, name, population));
+        if (!population.empty()) {
+            auto line = tuple(code, name, population);
+            if (find(cache.begin(), cache.end(), line) == cache.end()) {
+                cache.push_front(tuple(code, name, population));
+            }
             cout << "population: " << population;
         } else {
             cout << "City not found";
