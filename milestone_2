@@ -1,1 +1,63 @@
+#include <iostream>
+#include <list>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
 
+using namespace std;
+
+string read(string& code, string& name, list<tuple<string, string, string>>& cache) {
+    for (auto n : cache) {
+        if (get<0>(n) == name && get<1>(n) == code) {
+            return get<2>(n);
+        }
+    }
+    string filename = "world_cities.csv";
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << filename << endl;
+        return "";
+    }
+    string line, item;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        vector<string> items;
+        while (getline(ss, item, ',')) {
+            items.push_back(item);
+        }
+        if (items[0] == code && items[1] == name) {
+            file.close();
+            return items[2];
+        }
+    }
+    file.close();
+    return "";
+}
+
+int main() {
+    list<tuple<string, string, string>> cache;
+    string finished;
+    while (finished != "n") {
+        cout << "Enter city name: ";
+        string name;
+        getline(cin, name);
+        cout << "Enter country code: ";
+        string code;
+        getline(cin, code);
+        string population = read(code, name, cache);
+        if (!population.empty()) {
+            auto line = tuple(code, name, population);
+            if (find(cache.begin(), cache.end(), line) == cache.end()) {
+                cache.push_front(tuple(code, name, population));
+            }
+            cout << "population: " << population;
+        } else {
+            cout << "City not found";
+        }
+        if (cache.size() > 10) {cache.pop_back();}
+        cout << endl << "Do you want to continue? (y/n) ";
+        getline(cin, finished);
+    }
+    return 0;
+}
