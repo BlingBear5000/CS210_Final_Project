@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 using namespace std;
 
@@ -37,7 +38,11 @@ string read(string& code, string& name, list<tuple<string, string, string>>& cac
 
 int main() {
     list<tuple<string, string, string>> cache;
+    unordered_map<string, int> frequency;
+    string cacheType;
     string finished;
+    cout << "Enter caching strategy (FIFO, LFU, Random): ";
+    getline(cin, cacheType);
     while (finished != "n") {
         cout << "Enter city name: ";
         string name;
@@ -48,6 +53,13 @@ int main() {
         string population = read(code, name, cache);
         if (!population.empty()) {
             auto line = tuple(code, name, population);
+            if (cacheType == "LFU") {
+                if (frequency.find(get<0>(line)) == frequency.end()) {
+                    frequency[get<0>(line)] = 1;
+                } else {
+                    frequency[get<0>(line)] += 1;
+                }
+            }
             if (find(cache.begin(), cache.end(), line) == cache.end()) {
                 cache.push_front(tuple(code, name, population));
             }
@@ -55,7 +67,22 @@ int main() {
         } else {
             cout << "City not found";
         }
-        if (cache.size() > 10) {cache.pop_back();}
+        if (cache.size() > 10) {
+            if (cacheType == "FIFO") {
+                cache.pop_back();
+            } else if (cacheType == "LFU") {
+
+            } else {
+                int randomNum = (rand() % 10) + 1;
+                int num = 0;
+                for (auto n : cache) {
+                    if (num == randomNum) {
+                        cache.remove(n);
+                    }
+                    num++;
+                }
+            }
+        }
         cout << endl << "Do you want to continue? (y/n) ";
         getline(cin, finished);
     }
