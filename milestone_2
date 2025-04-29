@@ -41,8 +41,10 @@ int main() {
     unordered_map<string, int> frequency;
     string cacheType;
     string finished;
-    cout << "Enter caching strategy (FIFO, LFU, Random): ";
+
+    cout << "Enter number for caching strategy ([1]FIFO, [2]LFU, [3]Random): ";
     getline(cin, cacheType);
+
     while (finished != "n") {
         cout << "Enter city name: ";
         string name;
@@ -51,13 +53,14 @@ int main() {
         string code;
         getline(cin, code);
         string population = read(code, name, cache);
+
         if (!population.empty()) {
             auto line = tuple(code, name, population);
-            if (cacheType == "LFU") {
-                if (frequency.find(get<0>(line)) == frequency.end()) {
-                    frequency[get<0>(line)] = 1;
+            if (cacheType == "2") {
+                if (frequency.contains(get<1>(line))) {
+                    frequency[get<1>(line)] += 1;
                 } else {
-                    frequency[get<0>(line)] += 1;
+                    frequency[get<1>(line)] = 1;
                 }
             }
             if (find(cache.begin(), cache.end(), line) == cache.end()) {
@@ -67,24 +70,37 @@ int main() {
         } else {
             cout << "City not found";
         }
-        if (cache.size() > 10) {
-            if (cacheType == "FIFO") {
-                cache.pop_back();
-            } else if (cacheType == "LFU") {
 
+        if (cache.size() > 5) {
+            if (cacheType == "1") {
+                cache.pop_back();
+            } else if (cacheType == "2") {
+                int min = frequency.begin()->second;
+                string minName = frequency.begin()->first;
+                for (auto n : frequency) {
+                    if (n.second <= min) {
+                        minName = n.first;
+                    }
+                }
+                cache.remove_if([&](const tuple<string, string, string>& t) {return get<1>(t) == minName;});
+                frequency.erase(minName);
             } else {
-                int randomNum = (rand() % 10) + 1;
+                int randomNum = (rand() % 10);
                 int num = 0;
+                string remove;
                 for (auto n : cache) {
                     if (num == randomNum) {
-                        cache.remove(n);
+                        remove = get<1>(n);
                     }
                     num++;
                 }
+                cache.remove_if([&](const tuple<string, string, string>& t) {return get<1>(t) == remove;});
             }
         }
+
         cout << endl << "Do you want to continue? (y/n) ";
         getline(cin, finished);
+        
     }
     return 0;
 }
