@@ -1,6 +1,10 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include <sstream>
+#include <fstream>
+#include <vector>
+
 using namespace std;
 struct TrieNode {
     bool isEndOfWord;
@@ -39,5 +43,26 @@ public:
 
 };
 int main() {
+    NameTrie tree;
+    string filename = "world_cities.csv";
+
+    ifstream file(filename);
+    string line, word;
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << filename << endl;
+        return -1;
+    }
+    getline(file, line);
+    while (getline(file, line)) {
+        stringstream ss(line);
+        vector<string> row;
+        while (getline(ss, word, ',')) {
+            row.push_back(word);
+        }
+        tree.insert(row[0], row[1], row[2]);
+    }
+    file.close();
+
     
+    return 0;
 }
