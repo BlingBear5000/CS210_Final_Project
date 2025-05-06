@@ -71,7 +71,7 @@ int main() {
             cout << "City not found";
         }
 
-        if (cache.size() > 5) {
+        if (cache.size() > 10) {
             if (cacheType == "1") {
                 cache.pop_back();
             } else if (cacheType == "2") {
