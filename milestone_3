@@ -4,6 +4,8 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <list>
+#include <algorithm>
 
 using namespace std;
 struct TrieNode {
@@ -30,18 +32,30 @@ public:
         node->isEndOfWord = true;
         node->cityData[code + "," + name] = population;
     }
-    TrieNode* search(const string& name) {
+    string search(const string& name, const string& code) {
         TrieNode* node = root;
         for (char c : name) {
             c = tolower(c);
             if (node->children.count(c) == 0)
-                return false;
+                return "";
             node = node->children[c];
         }
-        return node;
+        if (node->isEndOfWord && node->cityData.find(code + "," + name) != node->cityData.end()) {
+            return node->cityData[code + "," + name];
+        }
+        return "";
     }
-
 };
+
+string read(string& code, string& name, list<tuple<string, string, string>>& cache, NameTrie& tree) {
+    for (auto n : cache) {
+        if (get<0>(n) == code && get<1>(n) == name) {
+            return get<2>(n);
+        }
+    }
+    return tree.search(name, code);
+}
+
 int main() {
     NameTrie tree;
     string filename = "world_cities.csv";
@@ -63,6 +77,70 @@ int main() {
     }
     file.close();
 
-    
+    list<tuple<string, string, string>> cache;
+    unordered_map<string, int> frequency;
+    string cacheType;
+    string finished;
+
+    cout << "Enter number for caching strategy ([1]FIFO, [2]LFU, [3]Random): ";
+    getline(cin, cacheType);
+
+    while (finished != "n") {
+        cout << "Enter city name: ";
+        string name;
+        getline(cin, name);
+        cout << "Enter country code: ";
+        string code;
+        getline(cin, code);
+        string population = read(code, name, cache, tree);
+
+        if (!population.empty()) {
+            auto line = tuple(code, name, population);
+            if (cacheType == "2") {
+                if (frequency.contains(get<0>(line) + "," + get<1>(line))) {
+                    frequency[get<0>(line) + "," + get<1>(line)] += 1;
+                } else {
+                    frequency[get<0>(line) + "," + get<1>(line)] = 1;
+                }
+            }
+            if (find(cache.begin(), cache.end(), line) == cache.end()) {
+                cache.push_front(tuple(code, name, population));
+            }
+            cout << "population: " << population;
+        } else {
+            cout << "City not found";
+        }
+
+        if (cache.size() > 10) {
+            if (cacheType == "1") {
+                cache.pop_back();
+            } else if (cacheType == "2") {
+                int min = frequency.begin()->second;
+                string minName = frequency.begin()->first;
+                for (auto n : frequency) {
+                    if (n.second <= min) {
+                        minName = n.first;
+                    }
+                }
+                cache.remove_if([&](const tuple<string, string, string>& t) {return get<0>(t)+","+get<1>(t) == minName;});
+                frequency.erase(minName);
+            } else {
+                int randomNum = (rand() % 10);
+                int num = 0;
+                string remove;
+                for (auto n : cache) {
+                    if (num == randomNum) {
+                        remove = get<1>(n);
+                    }
+                    num++;
+                }
+                cache.remove_if([&](const tuple<string, string, string>& t) {return get<1>(t) == remove;});
+            }
+        }
+
+        cout << endl << "Do you want to continue? (y/n) ";
+        getline(cin, finished);
+
+    }
     return 0;
 }
