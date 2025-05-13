@@ -6,6 +6,7 @@ int main() {
     string filename = "world_cities.csv";
 
     ifstream file(filename);
+    ifstream file2(filename);
     string line, word;
     if (!file.is_open()) {
         cerr << "Error: Could not open file " << filename << endl;
@@ -31,13 +32,25 @@ int main() {
     list<tuple<string, string, string>> cache;
     unordered_map<string, int> frequency;
     string cacheType;
-    list<tuple<string, string>> query;
-    for (int i = 0; i < 750; i++) {
 
+    vector<tuple<string, string>> data;
+    for (int j = 0; j < 1000; j++) {
+        getline(file2, line);
+        stringstream ss(line);
+        vector<string> row;
+        while (getline(ss, word, ',')) {
+            row.push_back(word);
+        }
+        data.push_back(tuple(row[0], row[1]));
+    }
+    vector<tuple<string, string>> query;
+    srand(time(0));
+    for (int i = 0; i < 500; i++) {
+        query.push_back(data[rand() % 1001]);
     }
 
     for (int i = 1; i <= 3; i++) {
-        cacheType = i;
+        cacheType = to_string(i);
         cache.clear();
         for (auto n : query) {
             auto start_time = chrono::high_resolution_clock::now();
