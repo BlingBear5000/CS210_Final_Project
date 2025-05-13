@@ -1,1 +1,68 @@
+#include <chrono>
+#include "milestone3.h"
 
+int main() {
+    NameTrie tree;
+    string filename = "world_cities.csv";
+
+    ifstream file(filename);
+    string line, word;
+    if (!file.is_open()) {
+        cerr << "Error: Could not open file " << filename << endl;
+        return -1;
+    }
+    getline(file, line);
+    while (getline(file, line)) {
+        stringstream ss(line);
+        vector<string> row;
+        while (getline(ss, word, ',')) {
+            row.push_back(word);
+        }
+        tree.insert(row[0], row[1], row[2]);
+    }
+    ofstream outFile("results.csv");
+    if (!outFile.is_open())
+    {
+        cerr << "Failed to open results.csv for writing.\n";
+        return 1;
+    }
+    outFile << "cacheType, time(microseconds), found in cache,\n";
+
+    list<tuple<string, string, string>> cache;
+    unordered_map<string, int> frequency;
+    string cacheType;
+    list<tuple<string, string>> query;
+    for (int i = 0; i < 750; i++) {
+
+    }
+
+    for (int i = 1; i <= 3; i++) {
+        cacheType = i;
+        cache.clear();
+        for (auto n : query) {
+            auto start_time = chrono::high_resolution_clock::now();
+            string code = get<0>(n);
+            string name = get<1>(n);
+            string found = "miss";
+            string population = read(code, name, cache, tree, found);
+            if (!population.empty()) {
+                auto line = tuple(code, name, population);
+                if (cacheType == "2") {
+                    if (frequency.contains(get<0>(line) + "," + get<1>(line))) {
+                        frequency[get<0>(line) + "," + get<1>(line)] += 1;
+                    } else {
+                        frequency[get<0>(line) + "," + get<1>(line)] = 1;
+                    }
+                }
+                if (find(cache.begin(), cache.end(), line) == cache.end()) {
+                    cache.push_front(tuple(code, name, population));
+                }
+            }
+            if (cache.size() > 10) {resize(cache, cacheType, frequency);}
+            auto end_time = chrono::high_resolution_clock::now();
+            double time = chrono::duration<double, micro>(end_time - start_time).count();
+            outFile << cacheType << "," << time << "," << found << endl;
+        }
+    }
+    return 0;
+}
