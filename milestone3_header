@@ -1,0 +1,90 @@
+#ifndef MILESTONE3_H
+#define MILESTONE3_H
+
+#include <iostream>
+#include <unordered_map>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <vector>
+#include <list>
+#include <algorithm>
+
+using namespace std;
+struct TrieNode {
+    bool isEndOfWord;
+    unordered_map<string, string> cityData;
+    unordered_map<char, TrieNode*> children;
+    TrieNode() : isEndOfWord(false) {}
+};
+class NameTrie {
+private:
+    TrieNode* root;
+public:
+    NameTrie() {
+        root = new TrieNode();
+    }
+    void insert(const string& code, const string& name, const string& population) {
+        TrieNode* node = root;
+        for (char c : name) {
+            c = tolower(c); // Case-insensitive
+            if (node->children.count(c) == 0)
+                node->children[c] = new TrieNode();
+            node = node->children[c];
+        }
+        node->isEndOfWord = true;
+        node->cityData[code + "," + name] = population;
+    }
+    string search(const string& name, const string& code) {
+        TrieNode* node = root;
+        for (char c : name) {
+            c = tolower(c);
+            if (node->children.count(c) == 0)
+                return "";
+            node = node->children[c];
+        }
+        if (node->isEndOfWord && node->cityData.find(code + "," + name) != node->cityData.end()) {
+            return node->cityData[code + "," + name];
+        }
+        return "";
+    }
+};
+
+string read(string& code, string& name, list<tuple<string, string, string>>& cache, NameTrie& tree, string& found) {
+    for (auto n : cache) {
+        if (get<0>(n) == code && get<1>(n) == name) {
+            found = "hit";
+            return get<2>(n);
+        }
+    }
+    return tree.search(name, code);
+}
+
+void resize(list<tuple<string, string, string>>& cache, string& cacheType, unordered_map<string, int>& frequency) {
+        if (cacheType == "1") {
+            cache.pop_back();
+        } else if (cacheType == "2") {
+            int min = frequency.begin()->second;
+            string minName = frequency.begin()->first;
+            for (auto n : frequency) {
+                if (n.second <= min) {
+                    minName = n.first;
+                }
+            }
+            cache.remove_if([&](const tuple<string, string, string>& t) {return get<0>(t)+","+get<1>(t) == minName;});
+            frequency.erase(minName);
+        } else {
+            int randomNum = (rand() % 10);
+            int num = 0;
+            string remove;
+            for (auto n : cache) {
+                if (num == randomNum) {
+                    remove = get<1>(n);
+                }
+                num++;
+            }
+            cache.remove_if([&](const tuple<string, string, string>& t) {return get<1>(t) == remove;});
+        }
+}
+
+#endif //MILESTONE3_H
